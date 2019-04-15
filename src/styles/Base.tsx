@@ -156,6 +156,7 @@ export const RightContent = styled.span`
   padding-right: 10px;
   font-size: 13px;
 `;
+
 export const CardWrapper = styled.article`
   border-radius: 3px;
   border-bottom: 1px solid #ccc;
@@ -172,6 +173,14 @@ export const MovableCardWrapper = styled(CardWrapper)`
   &:hover {
     background-color: #f0f0f0;
     color: #000;
+  }
+  
+  card-delete-button {
+    display: none;  
+  }
+
+  &:hover .card-delete-button {
+    display: initial;  
   }
 `;
 

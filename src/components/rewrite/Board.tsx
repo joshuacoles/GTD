@@ -10,7 +10,7 @@ import './Board.css'
 import { connect } from "react-redux";
 import { State as ReduxState, Board as BoardModel, Lane as LaneModel, ItemId, Item, LaneId } from "../../store";
 import { Dispatch } from "redux";
-import { BoardAction, moveItem, moveLane } from "../../store/actions";
+import { BoardAction, deleteItem, moveItem, moveLane } from "../../store/actions";
 
 interface OwnProps {
   boardId: string;
@@ -45,12 +45,18 @@ class Board extends Component<OwnProps & StoreProps, {}> {
               lane={lane}
               onCardDrop={this.onCardDrop}
               getCard={this.getCard}
+              removeCard={this.removeCard}
             />)
           }
         </Container>
       </div>
     );
   }
+
+  private removeCard = (cardId: ItemId) => this.props.dispatch(deleteItem({
+    boardId: this.props.boardId,
+    itemId: cardId,
+  }));
 
   onColumnDrop = (dropResult: DropResult) => {
     if (dropResult.removedIndex === null || dropResult.addedIndex === null) return;

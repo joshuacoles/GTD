@@ -3,16 +3,17 @@ import React from "react";
 import { DropResult } from "smooth-dnd";
 import { Container, Draggable } from "react-smooth-dnd";
 
-import Card from "./Card";
+import Card from "./card/Card";
 
 import { Lane as LaneModel, Item as ItemModel, LaneId, ItemId } from "../../store";
 
 // TODO: Move laneId also into Lane
-export function Lane({ laneId, lane, onCardDrop, getCard }: {
+export function Lane({ laneId, lane, onCardDrop, getCard, removeCard }: {
   laneId: LaneId,
   lane: LaneModel,
   onCardDrop: (laneId: LaneId, dropResult: DropResult) => void,
   getCard: (cardId: ItemId) => ItemModel,
+  removeCard: (cardId: ItemId) => void,
 }) {
   return <Draggable key={laneId}>
     <div className="card-container">
@@ -37,7 +38,13 @@ export function Lane({ laneId, lane, onCardDrop, getCard }: {
         }}
         dropPlaceholderAnimationDuration={200}
       >
-        {lane.items.map(cardId => <Card key={cardId} card={getCard(cardId)} cardId={cardId}/>)}
+        {lane.items.map(cardId => <Card
+          key={cardId}
+          card={getCard(cardId)}
+          cardId={cardId}
+          editable={true /* TODO */}
+          removeCard={removeCard}
+        />)}
       </Container>
     </div>
   </Draggable>;
