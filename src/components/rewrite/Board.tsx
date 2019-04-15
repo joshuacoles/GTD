@@ -7,33 +7,18 @@ import { Lane } from "./Lane";
 
 import './Board.css'
 
-import * as R from 'ramda'
-import { applyDrag, columnNames, generateItems, lorem, pickColor, State } from "./utils";
-
 import { connect } from "react-redux";
-import { State as ReduxState, Board as BoardModel } from "../../store";
+import { State as ReduxState, Board as BoardModel, Lane as LaneModel, ItemId, Item, LaneId } from "../../store";
 import { Dispatch } from "redux";
-import { BoardAction } from "../../store/actions";
+import { BoardAction, moveItem, moveLane } from "../../store/actions";
 
 interface OwnProps {
   boardId: string;
 }
 
-class Board extends Component<OwnProps, State> {
+class Board extends Component<OwnProps & StoreProps, {}> {
   constructor(props) {
     super(props);
-
-    this.state = {
-      lanes: generateItems(4, i => ({
-        id: `column${i}`,
-        name: columnNames[i],
-        cards: generateItems(+(Math.random() * 10).toFixed() + 5, j => ({
-          id: `${i}${j}`,
-          color: pickColor(),
-          data: lorem.slice(0, Math.floor(Math.random() * 150) + 30)
-        }))
-      }))
-    };
   }
 
   render() {
@@ -41,11 +26,9 @@ class Board extends Component<OwnProps, State> {
       <div className="card-scene">
         <Container
           orientation="horizontal"
-          onDrop={this.onColumnDrop}
           dragHandleSelector=".column-drag-handle"
 
-          onDragStart={e => console.log("LANE LANE drag started", e)}
-          onDragEnd={e => console.log("LANE LANE drag end", e)}
+          onDrop={this.onColumnDrop}
 
           // @ts-ignore
           dropPlaceholder={{
@@ -54,37 +37,65 @@ class Board extends Component<OwnProps, State> {
             className: 'cards-drop-preview'
           }}
         >
-          {this.state.lanes.map(lane => <Lane lane={lane} onCardDrop={this.onCardDrop}
-                                              getCardPayload={this.getCardPayload}/>)}
+          {Object.entries(this.props.board.lanes).map(([laneId, lane]: [string, LaneModel]) =>
+            <Lane
+              key={laneId}
+              laneId={laneId}
+
+              lane={lane}
+              onCardDrop={this.onCardDrop}
+              getCard={this.getCard}
+            />)
+          }
         </Container>
       </div>
     );
   }
 
-  getCardPayload = (columnId, index) =>
-    this.state.lanes.filter(p => p.id === columnId)[0].cards[index];
+  onColumnDrop = (dropResult: DropResult) => {
+    if (dropResult.removedIndex === null || dropResult.addedIndex === null) return;
 
-  onColumnDrop = dropResult => {
-    this.setState({
-      lanes: applyDrag(R.clone(this.state.lanes), dropResult)
-    });
+    this.props.dispatch(moveLane({
+      boardId: this.props.boardId,
+      laneId: this.props.board.laneOrder[dropResult.removedIndex],
+      toIndex: dropResult.addedIndex,
+    }));
   };
 
-  onCardDrop = (columnId: string, dropResult: DropResult) => {
-    if (dropResult.removedIndex !== null || dropResult.addedIndex !== null) {
-      const lanes = R.clone(this.state.lanes);
-      const column = lanes.filter(p => p.id === columnId)[0];
-      const columnIndex = lanes.indexOf(column);
+  onCardDrop = (laneId: LaneId, dropResult: DropResult) => {
+    const { removedIndex, addedIndex, payload } = dropResult;
+    const itemId = payload as ItemId;
 
-      const newColumn = Object.assign({}, column);
-      newColumn.cards = applyDrag(newColumn.cards, dropResult);
-      lanes.splice(columnIndex, 1, newColumn);
+    // Something went wrong
+    if (removedIndex === null && addedIndex === null) return;
 
-      this.setState({
-        lanes
-      });
+    // An item was removed from this lane into another
+    if (addedIndex === null) return;
+
+    // An item was added from a different lane
+    if (removedIndex === null) {
+      this.props.dispatch(moveItem({
+        boardId: this.props.boardId,
+        itemId,
+
+        toLane: laneId,
+        toPosition: addedIndex,
+      }));
+    } else {
+      // Move within lane
+      this.props.dispatch(moveItem({
+        boardId: this.props.boardId,
+        itemId,
+
+        toLane: null,
+        toPosition: addedIndex
+      }));
     }
+
+    return;
   };
+
+  private getCard = (cardId: ItemId): Item => this.props.board.items[cardId];
 }
 
 interface StoreProps {
@@ -100,9 +111,7 @@ function mapDispatchToProps(dispatch) {
   return { dispatch };
 }
 
-connect(
+export default connect(
   mapStateToProps,
   mapDispatchToProps,
 )(Board);
-
-export default Board;

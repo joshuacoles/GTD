@@ -5,25 +5,27 @@ import { Container, Draggable } from "react-smooth-dnd";
 
 import Card from "./Card";
 
-import { CardModel, LaneModel } from "./utils";
+import { Lane as LaneModel, Item as ItemModel, LaneId, ItemId } from "../../store";
 
-export function Lane({ lane, onCardDrop, getCardPayload }: {
+// TODO: Move laneId also into Lane
+export function Lane({ laneId, lane, onCardDrop, getCard }: {
+  laneId: LaneId,
   lane: LaneModel,
-  onCardDrop: (columnId: string, dropResult: DropResult) => void,
-  getCardPayload: (columnId: string, index: number) => CardModel,
+  onCardDrop: (laneId: LaneId, dropResult: DropResult) => void,
+  getCard: (cardId: ItemId) => ItemModel,
 }) {
-  return <Draggable key={lane.id}>
+  return <Draggable key={laneId}>
     <div className="card-container">
       <div className="card-column-header">
         <span className="column-drag-handle">&#x2630;</span>
-        {lane.name}
+        {lane.title}
       </div>
       <Container
         orientation="vertical"
         className="card-container"
         groupName="col"
-        onDrop={e => onCardDrop(lane.id, e)}
-        getChildPayload={index => getCardPayload(lane.id, index)}
+        onDrop={dr => onCardDrop(laneId, dr)}
+        getChildPayload={index => lane.items[index]}
         dragClass="card-ghost"
         dropClass="card-ghost-drop"
 
@@ -35,7 +37,7 @@ export function Lane({ lane, onCardDrop, getCardPayload }: {
         }}
         dropPlaceholderAnimationDuration={200}
       >
-        {lane.cards.map(card => <Card card={card}/>)}
+        {lane.items.map(cardId => <Card key={cardId} card={getCard(cardId)} cardId={cardId}/>)}
       </Container>
     </div>
   </Draggable>;

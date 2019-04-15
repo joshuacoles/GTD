@@ -1,11 +1,13 @@
-import { Draggable } from "react-smooth-dnd";
 import React from "react";
-import { CardModel } from "./utils";
 
-export function Card({ card }: { card: CardModel }) {
-  return <Draggable key={card.id}>
-    <div className="card" style={{ backgroundColor: card.color }}>
-      <p>{card.data}</p>
+import { Draggable } from "react-smooth-dnd";
+
+import { Item, ItemId } from "../../store";
+
+export function Card({ card, cardId }: { card: Item, cardId: ItemId }) {
+  return <Draggable key={cardId}>
+    <div className="card" style={{ backgroundColor: card.metadata['color'] || '#aabbcc' }}>
+      <p>{card.description}</p>
     </div>
   </Draggable>;
 }
