@@ -14,9 +14,7 @@ import { BoardAction, deleteItem, moveItem, moveLane, addItem, addLane, deleteLa
 import uuid from "uuid";
 
 import { PopoverWrapper } from '@terebentina/react-popover';
-import { NewLaneButton } from "../../../styles/Elements";
-import { LaneSection } from "../../../styles/Base";
-import NewLane from "../../lanes/NewLane";
+import TrelloBoard from "./TrelloBoard";
 
 interface OwnProps {
   boardId: string;
@@ -28,21 +26,20 @@ class Board extends Component<OwnProps & StoreProps, { currentlyAddingLanes: boo
     this.state = { currentlyAddingLanes: false };
   }
 
-  setCurrentlyAddingLanes = (b: boolean) => this.setState({ currentlyAddingLanes: b });
-
   render() {
     // TODO: Permissions
     const canAddLanes = true;
-    const { currentlyAddingLanes } = this.state;
+
+    const lanes: [LaneId, LaneModel][] = this.props.board.laneOrder.map(laneId => [laneId, this.props.board.lanes[laneId]]);
 
     return (
-      <MaterialBoard>
+      <MaterialBoard canAddLanes={canAddLanes} addLane={this.addLane}>
         <PopoverWrapper>
           <Container
             orientation="horizontal"
             dragHandleSelector=".column-drag-handle"
 
-            onDrop={this.onColumnDrop}
+            onDrop={this.onLaneDrop}
 
             // @ts-ignore
             dropPlaceholder={{
@@ -51,7 +48,7 @@ class Board extends Component<OwnProps & StoreProps, { currentlyAddingLanes: boo
               className: 'cards-drop-preview'
             }}
           >
-            {Object.entries(this.props.board.lanes).map(([laneId, lane]: [string, LaneModel]) =>
+            {lanes.map(([laneId, lane]: [LaneId, LaneModel]) =>
               <Lane
                 key={laneId}
                 laneId={laneId}
@@ -71,29 +68,19 @@ class Board extends Component<OwnProps & StoreProps, { currentlyAddingLanes: boo
             }
           </Container>
         </PopoverWrapper>
-
-        {canAddLanes && <Container orientation="horizontal">
-          {currentlyAddingLanes ? (
-            <NewLane onCancel={() => this.setCurrentlyAddingLanes(false)} onAdd={this.addLane}/>
-          ) : (
-            <LaneSection style={{ width: 200 }}>
-              <NewLaneButton onClick={() => this.setCurrentlyAddingLanes(true)}>+ Add another lane</NewLaneButton>
-            </LaneSection>
-          )}
-        </Container>}
       </MaterialBoard>
     );
   }
 
-  private addLane = (lane: LaneModel) => {
-    if (lane.title === undefined) return;
+  private addLane = (lane: LaneModel): boolean => {
+    if (lane.title === undefined) return false;
 
     this.props.dispatch(addLane({
       // @ts-ignore
       boardId: this.props.boardId, lane: lane, laneId: uuid()
     }));
 
-    this.setCurrentlyAddingLanes(false);
+    return true;
   };
 
   private removeCard = (cardId: ItemId) => this.props.dispatch(deleteItem({
@@ -101,8 +88,9 @@ class Board extends Component<OwnProps & StoreProps, { currentlyAddingLanes: boo
     itemId: cardId,
   }));
 
-  onColumnDrop = (dropResult: DropResult) => {
+  onLaneDrop = (dropResult: DropResult) => {
     if (dropResult.removedIndex === null || dropResult.addedIndex === null) return;
+    if (dropResult.removedIndex === dropResult.addedIndex) return; // Didn't move
 
     this.props.dispatch(moveLane({
       boardId: this.props.boardId,
@@ -117,6 +105,10 @@ class Board extends Component<OwnProps & StoreProps, { currentlyAddingLanes: boo
 
     // Something went wrong
     if (removedIndex === null && addedIndex === null) return;
+
+    // Didn't move, note when moving between one of these is null so even if we move lanes at same position it doesn't
+    // matter
+    if (dropResult.removedIndex === dropResult.addedIndex) return; // Didn't move
 
     // An item was removed from this lane into another
     if (addedIndex === null) return;
