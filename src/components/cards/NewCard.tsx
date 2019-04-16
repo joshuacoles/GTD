@@ -37,7 +37,7 @@ function NewCard({ onCancel, onAdd }: Props) {
 
 interface Props {
   onCancel: () => void;
-  onAdd: (item: { title: string, label: string, description: string }) => void;
+  onAdd: (item: Partial<Item>) => void;
 }
 
 export default NewCard;

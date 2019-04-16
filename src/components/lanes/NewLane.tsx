@@ -24,7 +24,7 @@ function NewLane({ onCancel, onAdd }: Props) {
 
 interface Props {
   onCancel: () => void;
-  onAdd: (item: Lane) => void;
+  onAdd: (lane: Lane) => void;
 }
 
 export default NewLane;

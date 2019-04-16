@@ -32,10 +32,12 @@ export class Board {
 
 export class Lane {
   title: string;
+  label: string = "";
   items: ItemId[] = [];
 
-  constructor({ title, items = [] }: PartiallyPartial<Lane, 'title'>) {
+  constructor({ title, label = "", items = [] }: PartiallyPartial<Lane, 'title'>) {
     this.title = title;
+    this.label = label;
     this.items = items;
   }
 }

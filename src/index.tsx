@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import App from './components/rewrite/Board';
+import App from './components/rewrite/board/Board';
 import { Provider } from "react-redux";
 import { createBoardStore } from "./store";
 

@@ -15,7 +15,7 @@ export interface CardProps {
 }
 
 export function Card(props: CardProps) {
-  return <Draggable key={`draggable-${props.cardId}`}>
+  return <Draggable key={`draggable-card-${props.cardId}`}>
     <MaterialCard {...props}/>
   </Draggable>;
 }

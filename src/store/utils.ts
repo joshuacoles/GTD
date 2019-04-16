@@ -86,6 +86,7 @@ export function generateState(): State {
         lanes: R.zipObj(laneIds, splitItems.map((items, i) => ({
           id: laneIds[i],
           title: columnNames[i % 4],
+          label: 'test',
           items: items,
         }))),
 
