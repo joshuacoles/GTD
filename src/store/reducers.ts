@@ -180,7 +180,8 @@ export function addLane(state: State, {
   return R.evolve({
     boards: {
       [boardId]: {
-        lanes: R.assoc<Lane, LaneId>(laneId, lane)
+        lanes: R.assoc<Lane, LaneId>(laneId, lane),
+        laneOrder: R.append(laneId),
       }
     }
   }, state);
